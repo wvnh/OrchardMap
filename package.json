@@ -4,7 +4,23 @@
   "description": "Geografisch beheersysteem voor boomgaarden en boomsoorten, gebouwd met Vue.js en Supabase.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test-setup.js",
+    "dev": "echo \"Frontend not yet configured. Run 'npm create vue@latest frontend' to set up.\"",
+    "build": "echo \"Frontend not yet configured. Build will be available after frontend setup.\"",
+    "preview": "echo \"Frontend not yet configured. Preview will be available after frontend setup.\"",
+    "deploy": "bash scripts/deploy-production.sh",
+    "deploy:win": "scripts\\deploy-production.bat",
+    "migrate": "bash scripts/migrate-database.sh",
+    "migrate:local": "bash scripts/migrate-database.sh local",
+    "migrate:prod": "bash scripts/migrate-database.sh production",
+    "backup": "bash scripts/backup-database.sh",
+    "backup:local": "bash scripts/backup-database.sh local",
+    "backup:prod": "bash scripts/backup-database.sh production",
+    "restore": "bash scripts/restore-database.sh",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:status": "supabase status"
   },
   "repository": {
     "type": "git",

@@ -1,0 +1,66 @@
+# Netlify Configuration for OrchardMap
+
+[build]
+  # Directory to change to before starting a build
+  base = "/"
+  
+  # Build command (update this when frontend is set up)
+  command = "npm run build"
+  
+  # Directory that contains the deploy-ready HTML files and assets
+  publish = "dist"
+  
+  # Node version for build
+  [build.environment]
+    NODE_VERSION = "20"
+
+# Production environment variables
+# Set these in Netlify Dashboard → Site settings → Environment variables
+# Do NOT commit actual values here
+[context.production.environment]
+  # VITE_SUPABASE_URL = "https://your-project.supabase.co"
+  # VITE_SUPABASE_ANON_KEY = "your-anon-key"
+  # VITE_APP_URL = "https://your-domain.com"
+
+# Branch deploy context
+[context.deploy-preview.environment]
+  NODE_VERSION = "20"
+
+# Redirects and rewrites
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+  
+# Headers for security
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(self)"
+
+# Cache static assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache images
+[[headers]]
+  for = "/*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Functions (if using Netlify Functions)
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
