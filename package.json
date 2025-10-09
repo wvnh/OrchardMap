@@ -4,7 +4,8 @@
   "description": "Geografisch beheersysteem voor boomgaarden en boomsoorten, gebouwd met Vue.js en Supabase.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "demo": "npx http-server . -p 8080 -o demo-gps-map.html"
   },
   "repository": {
     "type": "git",
@@ -21,9 +22,11 @@
   "dependencies": {
     "@quasar/extras": "^1.17.0",
     "@supabase/supabase-js": "^2.58.0",
+    "leaflet": "^1.9.4",
+    "localforage": "^1.10.0",
     "quasar": "^2.18.5",
     "vue": "^3.5.22",
-    "vue-leaflet": "^0.1.0",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.5.1",
+    "vue3-leaflet": "^1.0.50"
   }
 }
