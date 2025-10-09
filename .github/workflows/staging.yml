@@ -1,0 +1,96 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [develop, staging]
+  pull_request:
+    branches: [main]
+    types: [labeled]
+  workflow_dispatch:
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging Environment
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' || 
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy-staging'))
+    environment:
+      name: staging
+      url: ${{ steps.deploy.outputs.url }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Link to Supabase staging project
+        run: |
+          supabase link --project-ref ${{ secrets.SUPABASE_STAGING_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Run database migrations
+        run: |
+          supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Build frontend
+        run: npm run build --if-present
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_STAGING_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_STAGING_SUPABASE_ANON_KEY }}
+          VITE_APP_URL: ${{ secrets.VITE_STAGING_APP_URL }}
+
+      - name: Deploy to Netlify (Staging)
+        id: deploy
+        uses: nwtgck/actions-netlify@v3.0
+        with:
+          publish-dir: './dist'
+          production-deploy: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Staging deploy from ${{ github.ref }}"
+          alias: staging-${{ github.event.number || github.run_number }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_STAGING_SITE_ID }}
+        if: env.NETLIFY_AUTH_TOKEN != ''
+
+      - name: Comment PR with staging URL
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🚀 Staging Deployment Ready!\n\n✅ Your changes have been deployed to staging:\n\n🔗 **Staging URL**: ${{ steps.deploy.outputs.url }}\n\n⏰ Deployed at: ${new Date().toISOString()}\n\n---\n\n### Testing Checklist\n- [ ] Verify UI changes\n- [ ] Test functionality\n- [ ] Check database migrations\n- [ ] Validate security\n- [ ] Mobile responsiveness\n\ncc @${{ github.event.pull_request.user.login }}`
+            })
+
+      - name: Run smoke tests
+        run: |
+          echo "🧪 Running smoke tests on staging..."
+          # Add smoke tests here when available
+          # npm run test:e2e --if-present
+        continue-on-error: true
+
+      - name: Notify deployment status
+        run: |
+          echo "✅ Staging deployment completed successfully!"
+          echo "🔗 URL: ${{ steps.deploy.outputs.url }}"

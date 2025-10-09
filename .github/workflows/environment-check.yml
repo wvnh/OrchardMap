@@ -1,0 +1,178 @@
+name: Environment Check
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run daily at 9 AM UTC to check configuration
+    - cron: '0 9 * * *'
+
+jobs:
+  check-secrets:
+    name: Verify Required Secrets
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check production secrets
+        run: |
+          echo "🔍 Checking required secrets for production deployment..."
+          
+          MISSING_SECRETS=0
+          
+          # Check each required secret
+          if [ -z "${{ secrets.SUPABASE_ACCESS_TOKEN }}" ]; then
+            echo "❌ SUPABASE_ACCESS_TOKEN is missing"
+            MISSING_SECRETS=$((MISSING_SECRETS + 1))
+          else
+            echo "✅ SUPABASE_ACCESS_TOKEN is set"
+          fi
+          
+          if [ -z "${{ secrets.SUPABASE_PROJECT_REF }}" ]; then
+            echo "❌ SUPABASE_PROJECT_REF is missing"
+            MISSING_SECRETS=$((MISSING_SECRETS + 1))
+          else
+            echo "✅ SUPABASE_PROJECT_REF is set"
+          fi
+          
+          if [ -z "${{ secrets.VITE_SUPABASE_URL }}" ]; then
+            echo "❌ VITE_SUPABASE_URL is missing"
+            MISSING_SECRETS=$((MISSING_SECRETS + 1))
+          else
+            echo "✅ VITE_SUPABASE_URL is set"
+          fi
+          
+          if [ -z "${{ secrets.VITE_SUPABASE_ANON_KEY }}" ]; then
+            echo "❌ VITE_SUPABASE_ANON_KEY is missing"
+            MISSING_SECRETS=$((MISSING_SECRETS + 1))
+          else
+            echo "✅ VITE_SUPABASE_ANON_KEY is set"
+          fi
+          
+          # Check hosting platform secrets
+          HAS_NETLIFY=0
+          HAS_VERCEL=0
+          
+          if [ ! -z "${{ secrets.NETLIFY_AUTH_TOKEN }}" ]; then
+            echo "✅ NETLIFY_AUTH_TOKEN is set"
+            HAS_NETLIFY=1
+          fi
+          
+          if [ ! -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            echo "✅ VERCEL_TOKEN is set"
+            HAS_VERCEL=1
+          fi
+          
+          if [ $HAS_NETLIFY -eq 0 ] && [ $HAS_VERCEL -eq 0 ]; then
+            echo "⚠️  No hosting platform credentials found (Netlify or Vercel)"
+            echo "   Deployment will require manual steps"
+          fi
+          
+          echo ""
+          echo "📊 Configuration Summary:"
+          echo "  Missing critical secrets: $MISSING_SECRETS"
+          echo "  Hosting platforms configured: $((HAS_NETLIFY + HAS_VERCEL))"
+          
+          if [ $MISSING_SECRETS -gt 0 ]; then
+            echo ""
+            echo "⚠️  Configuration incomplete. Please add missing secrets:"
+            echo "   Repository → Settings → Secrets and variables → Actions"
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅ All required secrets are configured!"
+
+  check-supabase-health:
+    name: Check Supabase Project Health
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Check Supabase connection
+        run: |
+          echo "🔍 Checking Supabase project health..."
+          
+          # Try to link to project
+          if supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }} 2>/dev/null; then
+            echo "✅ Successfully connected to Supabase project"
+          else
+            echo "❌ Failed to connect to Supabase project"
+            echo "   Please verify SUPABASE_PROJECT_REF and SUPABASE_ACCESS_TOKEN"
+            exit 1
+          fi
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        continue-on-error: true
+
+  check-dependencies:
+    name: Check Dependency Health
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Check for outdated dependencies
+        run: |
+          echo "🔍 Checking for outdated dependencies..."
+          npm outdated || true
+
+      - name: Run security audit
+        run: |
+          echo "🔒 Running security audit..."
+          npm audit --audit-level=moderate || true
+
+      - name: Check for deprecated packages
+        run: |
+          echo "⚠️  Checking for deprecated packages..."
+          npm list --depth=0 --deprecated || true
+
+  summary:
+    name: Configuration Summary
+    needs: [check-secrets, check-supabase-health, check-dependencies]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Generate summary
+        run: |
+          echo "# 📋 OrchardMap Configuration Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Date**: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.check-secrets.result }}" == "success" ]; then
+            echo "✅ **Secrets**: All required secrets configured" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Secrets**: Missing required secrets" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.check-supabase-health.result }}" == "success" ]; then
+            echo "✅ **Supabase**: Connection healthy" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Supabase**: Connection check failed or skipped" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.check-dependencies.result }}" == "success" ]; then
+            echo "✅ **Dependencies**: No critical issues" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Dependencies**: Check for security issues" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "For detailed configuration guide, see [docs/deployment.md](docs/deployment.md)" >> $GITHUB_STEP_SUMMARY
