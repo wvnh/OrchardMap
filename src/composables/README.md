@@ -1,6 +1,12 @@
-# useAuth Composable
+# Composables Documentation
 
-## Overzicht
+Dit document beschrijft alle beschikbare composables in de OrchardMap applicatie.
+
+---
+
+## useAuth Composable
+
+### Overzicht
 
 De `useAuth` composable is een centrale authenticatie-oplossing voor de Orchard Manager App. Het biedt reactieve toegang tot de Supabase-gebruiker en authenticatiestatus in alle Vue components en composables.
 
@@ -166,3 +172,182 @@ Deze composable volgt de architectuurrichtlijnen:
 - ✅ Consistent met terminologie woordenboek
 - ✅ Gebruikt Supabase JavaScript Client SDK
 - ✅ Geïsoleerde logica in een Composable
+
+---
+
+## useAnalytics Composable
+
+### Overzicht
+
+De `useAnalytics` composable biedt uitgebreide analytics en statistieken voor het OrchardMap dashboard. Het haalt data op van Supabase, berekent key metrics en biedt export functionaliteit.
+
+### Locatie
+
+```
+src/composables/useAnalytics.js
+```
+
+### Gebruik
+
+#### Importeren
+
+```javascript
+import { useAnalytics } from '@/composables/useAnalytics'
+```
+
+#### In een View Component
+
+```vue
+<script setup>
+import { useAnalytics } from '@/composables/useAnalytics'
+import { onMounted } from 'vue'
+
+const {
+  loading,
+  error,
+  keyMetrics,
+  speciesDistribution,
+  healthDistribution,
+  plantingTrends,
+  loadAnalyticsData,
+  downloadCSV
+} = useAnalytics()
+
+// Load data on mount
+onMounted(async () => {
+  await loadAnalyticsData()
+})
+
+// Export data
+const handleExport = () => {
+  downloadCSV('species', 'species-data.csv')
+}
+</script>
+
+<template>
+  <div v-if="loading">Loading...</div>
+  <div v-else-if="error">Error: {{ error }}</div>
+  <div v-else>
+    <h2>Total Trees: {{ keyMetrics.totalTrees }}</h2>
+    <!-- Display charts and metrics -->
+  </div>
+</template>
+```
+
+### API
+
+#### Exposed Properties
+
+##### `loading` (ref)
+- **Type:** `Ref<Boolean>`
+- **Beschrijving:** Geeft aan of data wordt geladen
+
+##### `error` (ref)
+- **Type:** `Ref<String | null>`
+- **Beschrijving:** Error bericht indien data laden mislukt
+
+##### `orchards` (ref)
+- **Type:** `Ref<Array>`
+- **Beschrijving:** Array met alle toegankelijke boomgaarden
+
+##### `trees` (ref)
+- **Type:** `Ref<Array>`
+- **Beschrijving:** Array met alle bomen
+
+##### `species` (ref)
+- **Type:** `Ref<Array>`
+- **Beschrijving:** Array met alle gevalideerde boomsoorten
+
+##### `keyMetrics` (computed)
+- **Type:** `ComputedRef<Object>`
+- **Beschrijving:** Berekende key metrics
+- **Properties:**
+  - `totalOrchards`: Totaal aantal boomgaarden
+  - `totalTrees`: Totaal aantal bomen
+  - `totalSpecies`: Aantal verschillende soorten
+  - `publicOrchards`: Aantal publieke boomgaarden
+  - `healthyTrees`: Aantal gezonde bomen
+  - `avgTreesPerOrchard`: Gemiddeld aantal bomen per boomgaard
+
+##### `speciesDistribution` (computed)
+- **Type:** `ComputedRef<Array>`
+- **Beschrijving:** Species distributie data voor charts
+- **Format:** `[{ name: String, count: Number, fruitType: String }]`
+
+##### `healthDistribution` (computed)
+- **Type:** `ComputedRef<Array>`
+- **Beschrijving:** Gezondheids status distributie
+- **Format:** `[{ status: String, count: Number }]`
+
+##### `plantingTrends` (computed)
+- **Type:** `ComputedRef<Array>`
+- **Beschrijving:** Planting trends per jaar
+- **Format:** `[{ year: Number, count: Number }]`
+
+##### `fruitTypeDistribution` (computed)
+- **Type:** `ComputedRef<Array>`
+- **Beschrijving:** Distributie per fruit type
+- **Format:** `[{ type: String, count: Number }]`
+
+#### Functies
+
+##### `loadAnalyticsData()`
+- **Returns:** `Promise<void>`
+- **Beschrijving:** Laadt alle analytics data (orchards, trees, species)
+- **Voorbeeld:**
+```javascript
+await loadAnalyticsData()
+```
+
+##### `fetchOrchards()`
+- **Returns:** `Promise<void>`
+- **Beschrijving:** Haalt alleen boomgaard data op
+
+##### `fetchTrees()`
+- **Returns:** `Promise<void>`
+- **Beschrijving:** Haalt alleen boom data op
+
+##### `fetchSpecies()`
+- **Returns:** `Promise<void>`
+- **Beschrijving:** Haalt alleen species data op
+
+##### `exportToCSV(dataType)`
+- **Parameters:** 
+  - `dataType`: String - Type data ('species', 'health', 'trends', of 'metrics')
+- **Returns:** `String` - CSV formatted string
+- **Beschrijving:** Genereert CSV string van specifiek data type
+
+##### `downloadCSV(dataType, filename)`
+- **Parameters:** 
+  - `dataType`: String - Type data om te exporteren
+  - `filename`: String - Bestandsnaam voor download
+- **Returns:** `void`
+- **Beschrijving:** Triggert browser download van CSV bestand
+- **Voorbeeld:**
+```javascript
+downloadCSV('species', 'my-species-data.csv')
+```
+
+### Features
+
+- ✅ Parallel data fetching voor performance
+- ✅ Reactive computed properties voor real-time updates
+- ✅ CSV export functionaliteit
+- ✅ Error handling met user-friendly berichten
+- ✅ RLS compliant (respecteert user permissions)
+
+### Vereisten
+
+- Vue 3 met Composition API
+- Supabase client geconfigureerd
+- Toegang tot orchards, orchard_trees en tree_species tabellen
+
+### Architectuur Conformiteit
+
+Deze composable volgt de architectuurrichtlijnen:
+- ✅ Gebruikt ES6+ syntax (arrow functions, const/let)
+- ✅ Nederlandse opmerkingen en documentatie
+- ✅ Try-catch blokken voor foutafhandeling
+- ✅ Gebruikt Supabase JavaScript Client SDK
+- ✅ Geïsoleerde logica in een Composable
+- ✅ Computed properties voor reactive calculations
