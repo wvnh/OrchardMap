@@ -15,8 +15,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host ""
-Write-Host "2️⃣ Testing database connection..." -ForegroundColor Yellow
-node test-database-admin.js
+Write-Host "2️⃣ Testing database setup..." -ForegroundColor Yellow
+node test-setup.js
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "⚠️  Database test had issues, but continuing..." -ForegroundColor Yellow
@@ -26,13 +26,13 @@ Write-Host ""
 Write-Host "✅ Development environment is ready!" -ForegroundColor Green
 Write-Host ""
 Write-Host "🔗 Useful URLs:" -ForegroundColor Cyan
-Write-Host "   Database Studio: http://127.0.0.1:54323" -ForegroundColor White
+Write-Host "   Database Studio: http://127.0.0.1:54325" -ForegroundColor White
 Write-Host "   API URL: http://127.0.0.1:54321" -ForegroundColor White
-Write-Host "   Database: postgresql://postgres:postgres@127.0.0.1:54322/postgres" -ForegroundColor White
+Write-Host "   Database: postgresql://postgres:postgres@127.0.0.1:54323/postgres" -ForegroundColor White
 Write-Host ""
 Write-Host "📋 Quick commands:" -ForegroundColor Cyan
 Write-Host "   supabase db reset          - Reset database with all migrations" -ForegroundColor White
-Write-Host "   node test-rls-comprehensive.js  - Test all RLS policies" -ForegroundColor White
+Write-Host "   node test-setup.js         - Test database setup" -ForegroundColor White
 Write-Host "   supabase stop             - Stop all services" -ForegroundColor White
 Write-Host ""
 Write-Host "📚 Documentation:" -ForegroundColor Cyan

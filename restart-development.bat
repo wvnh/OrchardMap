@@ -16,8 +16,8 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo 2️⃣ Testing database connection...
-node test-database-admin.js
+echo 2️⃣ Testing database setup...
+node test-setup.js
 
 if %errorlevel% neq 0 (
     echo ⚠️  Database test had issues, but continuing...
@@ -27,13 +27,13 @@ echo.
 echo ✅ Development environment is ready!
 echo.
 echo 🔗 Useful URLs:
-echo    Database Studio: http://127.0.0.1:54323
+echo    Database Studio: http://127.0.0.1:54325
 echo    API URL: http://127.0.0.1:54321
-echo    Database: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+echo    Database: postgresql://postgres:postgres@127.0.0.1:54323/postgres
 echo.
 echo 📋 Quick commands:
 echo    supabase db reset          - Reset database with all migrations
-echo    node test-rls-comprehensive.js  - Test all RLS policies
+echo    node test-setup.js         - Test database setup
 echo    supabase stop             - Stop all services
 echo.
 echo 📚 Documentation:

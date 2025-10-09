@@ -9,10 +9,10 @@ Een Vue.js 3 applicatie voor het beheren van meerdere boomgaarden met gedetaille
 supabase start
 
 # Test database (optioneel)
-node test-rls-comprehensive.js
+node test-setup.js
 
 # Supabase Studio
-open http://127.0.0.1:54323
+open http://127.0.0.1:54325
 ```
 
 ## 📋 Project Status
