@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OrchardMap GPS & Mapping Demo</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f5f5f5;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .demo-section {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      color: #34495e;
+      margin-bottom: 15px;
+      font-size: 20px;
+      border-bottom: 2px solid #4CAF50;
+      padding-bottom: 8px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    button.primary {
+      background: #4CAF50;
+      color: white;
+    }
+
+    button.primary:hover {
+      background: #45a049;
+    }
+
+    button.secondary {
+      background: #2196F3;
+      color: white;
+    }
+
+    button.secondary:hover {
+      background: #0b7dda;
+    }
+
+    button.danger {
+      background: #f44336;
+      color: white;
+    }
+
+    button.danger:hover {
+      background: #da190b;
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .status-box {
+      background: #f9f9f9;
+      border-left: 4px solid #4CAF50;
+      padding: 15px;
+      margin-top: 15px;
+      border-radius: 4px;
+    }
+
+    .status-box.error {
+      border-left-color: #f44336;
+      background: #ffebee;
+    }
+
+    .status-box h3 {
+      font-size: 14px;
+      margin-bottom: 10px;
+      color: #666;
+    }
+
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      font-size: 14px;
+    }
+
+    .status-item .label {
+      font-weight: 500;
+      color: #666;
+    }
+
+    .status-item .value {
+      color: #2c3e50;
+      font-family: monospace;
+    }
+
+    .accuracy-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .accuracy-excellent { background: #4CAF50; color: white; }
+    .accuracy-good { background: #8BC34A; color: white; }
+    .accuracy-fair { background: #FF9800; color: white; }
+    .accuracy-poor { background: #f44336; color: white; }
+    .accuracy-unknown { background: #9E9E9E; color: white; }
+
+    #map {
+      width: 100%;
+      height: 500px;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .info-message {
+      background: #e3f2fd;
+      border-left: 4px solid #2196F3;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #1565c0;
+    }
+
+    .trail-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .stat-card {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .stat-card .number {
+      font-size: 24px;
+      font-weight: bold;
+      color: #4CAF50;
+    }
+
+    .stat-card .label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🗺️ OrchardMap GPS & Mapping Demo</h1>
+
+    <!-- GPS Tracking Section -->
+    <div class="demo-section">
+      <h2>📍 GPS Tracking</h2>
+      <div class="info-message">
+        Deze demo gebruikt de browser Geolocation API. Geef toestemming voor locatie toegang wanneer gevraagd.
+      </div>
+
+      <div class="button-group">
+        <button class="primary" id="startTracking">Start GPS Tracking</button>
+        <button class="secondary" id="getCurrentPosition">Huidige Locatie</button>
+        <button class="danger" id="stopTracking" disabled>Stop Tracking</button>
+      </div>
+
+      <div id="gpsStatus" class="status-box" style="display: none;">
+        <h3>GPS Status</h3>
+        <div class="status-item">
+          <span class="label">Tracking:</span>
+          <span class="value" id="trackingStatus">-</span>
+        </div>
+        <div class="status-item">
+          <span class="label">Latitude:</span>
+          <span class="value" id="latitude">-</span>
+        </div>
+        <div class="status-item">
+          <span class="label">Longitude:</span>
+          <span class="value" id="longitude">-</span>
+        </div>
+        <div class="status-item">
+          <span class="label">Nauwkeurigheid:</span>
+          <span class="value">
+            <span id="accuracy">-</span>
+            <span class="accuracy-badge" id="accuracyBadge">Unknown</span>
+          </span>
+        </div>
+        <div class="status-item">
+          <span class="label">Laatste update:</span>
+          <span class="value" id="lastUpdate">-</span>
+        </div>
+      </div>
+
+      <div id="gpsError" class="status-box error" style="display: none;">
+        <h3>⚠️ Fout</h3>
+        <p id="errorMessage"></p>
+      </div>
+    </div>
+
+    <!-- Trail Recording Section -->
+    <div class="demo-section">
+      <h2>🛤️ Trail Recording</h2>
+      
+      <div class="button-group">
+        <button class="primary" id="startTrail">Start Recording</button>
+        <button class="danger" id="stopTrail" disabled>Stop Recording</button>
+        <button class="secondary" id="clearTrail">Clear Trail</button>
+        <button class="secondary" id="exportGeoJSON" disabled>Export GeoJSON</button>
+        <button class="secondary" id="exportGPX" disabled>Export GPX</button>
+      </div>
+
+      <div class="trail-stats">
+        <div class="stat-card">
+          <div class="number" id="pointCount">0</div>
+          <div class="label">Points</div>
+        </div>
+        <div class="stat-card">
+          <div class="number" id="totalDistance">0.0 km</div>
+          <div class="label">Distance</div>
+        </div>
+        <div class="stat-card">
+          <div class="number" id="duration">00:00:00</div>
+          <div class="label">Duration</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Map Section -->
+    <div class="demo-section">
+      <h2>🗺️ Interactive Map</h2>
+      <div class="info-message">
+        De kaart toont uw huidige locatie (blauwe marker) en GPS trail (blauwe lijn).
+      </div>
+      <div id="map"></div>
+    </div>
+
+    <!-- Feature Checklist -->
+    <div class="demo-section">
+      <h2>✅ Geïmplementeerde Features</h2>
+      <ul style="list-style: none; padding: 0;">
+        <li style="padding: 8px 0; border-bottom: 1px solid #eee;">✅ GPS tracking met high/low accuracy modes</li>
+        <li style="padding: 8px 0; border-bottom: 1px solid #eee;">✅ Battery-efficient GPS optimalisatie</li>
+        <li style="padding: 8px 0; border-bottom: 1px solid #eee;">✅ GPS trail recording</li>
+        <li style="padding: 8px 0; border-bottom: 1px solid #eee;">✅ Real-time accuracy indicator</li>
+        <li style="padding: 8px 0; border-bottom: 1px solid #eee;">✅ Interactive Leaflet map</li>
+        <li style="padding: 8px 0; border-bottom: 1px solid #eee;">✅ GeoJSON export functionaliteit</li>
+        <li style="padding: 8px 0; border-bottom: 1px solid #eee;">✅ GPX export functionaliteit</li>
+        <li style="padding: 8px 0; border-bottom: 1px solid #eee;">✅ Touch-friendly controls</li>
+        <li style="padding: 8px 0; border-bottom: 1px solid #eee;">✅ Offline map caching composable</li>
+        <li style="padding: 8px 0;">✅ Distance calculation (Haversine)</li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // GPS State
+    let watchId = null;
+    let isTracking = false;
+    let trail = [];
+    let isRecordingTrail = false;
+    let trailStartTime = null;
+    let currentPosition = null;
+    let accuracy = null;
+
+    // Map
+    let map = null;
+    let currentMarker = null;
+    let accuracyCircle = null;
+    let trailPolyline = null;
+
+    // Initialize map
+    function initMap() {
+      map = L.map('map').setView([52.1326, 5.2913], 7);
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19
+      }).addTo(map);
+
+      trailPolyline = L.polyline([], {
+        color: '#2196F3',
+        weight: 3,
+        opacity: 0.7
+      }).addTo(map);
+    }
+
+    // Update map with current position
+    function updateMap(lat, lng, acc) {
+      if (!map) return;
+
+      // Remove old markers
+      if (currentMarker) {
+        map.removeLayer(currentMarker);
+      }
+      if (accuracyCircle) {
+        map.removeLayer(accuracyCircle);
+      }
+
+      // Add new marker
+      currentMarker = L.circleMarker([lat, lng], {
+        color: '#2196F3',
+        fillColor: '#2196F3',
+        fillOpacity: 1,
+        radius: 8
+      }).addTo(map);
+
+      // Add accuracy circle
+      accuracyCircle = L.circle([lat, lng], {
+        color: '#2196F3',
+        fillColor: '#2196F3',
+        fillOpacity: 0.1,
+        radius: acc
+      }).addTo(map);
+
+      // Center on position
+      map.setView([lat, lng], 15);
+    }
+
+    // Update trail polyline
+    function updateTrailPolyline() {
+      if (trailPolyline && trail.length > 0) {
+        const latLngs = trail.map(point => [point.latitude, point.longitude]);
+        trailPolyline.setLatLngs(latLngs);
+      }
+    }
+
+    // Calculate distance between two points (Haversine)
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+      const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ/2) * Math.sin(Δλ/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+      return R * c;
+    }
+
+    // Calculate total trail distance
+    function calculateTrailDistance() {
+      if (trail.length < 2) return 0;
+
+      let total = 0;
+      for (let i = 1; i < trail.length; i++) {
+        total += calculateDistance(
+          trail[i-1].latitude,
+          trail[i-1].longitude,
+          trail[i].latitude,
+          trail[i].longitude
+        );
+      }
+      return total;
+    }
+
+    // Format duration
+    function formatDuration(ms) {
+      const seconds = Math.floor(ms / 1000);
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const secs = seconds % 60;
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    // Update trail stats
+    function updateTrailStats() {
+      document.getElementById('pointCount').textContent = trail.length;
+      
+      const distance = calculateTrailDistance();
+      document.getElementById('totalDistance').textContent = (distance / 1000).toFixed(2) + ' km';
+
+      if (trailStartTime && isRecordingTrail) {
+        const duration = Date.now() - trailStartTime;
+        document.getElementById('duration').textContent = formatDuration(duration);
+      }
+    }
+
+    // GPS Success Handler
+    function handleSuccess(position) {
+      currentPosition = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        timestamp: position.timestamp
+      };
+      accuracy = position.coords.accuracy;
+
+      // Update UI
+      document.getElementById('gpsStatus').style.display = 'block';
+      document.getElementById('gpsError').style.display = 'none';
+      document.getElementById('trackingStatus').textContent = isTracking ? 'Active' : 'Single read';
+      document.getElementById('latitude').textContent = position.coords.latitude.toFixed(6);
+      document.getElementById('longitude').textContent = position.coords.longitude.toFixed(6);
+      document.getElementById('accuracy').textContent = accuracy.toFixed(1) + 'm';
+      document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+
+      // Update accuracy badge
+      const badge = document.getElementById('accuracyBadge');
+      let level = 'unknown';
+      if (accuracy < 5) level = 'excellent';
+      else if (accuracy < 10) level = 'good';
+      else if (accuracy < 20) level = 'fair';
+      else level = 'poor';
+      
+      badge.className = 'accuracy-badge accuracy-' + level;
+      badge.textContent = level;
+
+      // Update map
+      updateMap(position.coords.latitude, position.coords.longitude, accuracy);
+
+      // Add to trail if recording
+      if (isRecordingTrail) {
+        trail.push({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          timestamp: position.timestamp,
+          accuracy: accuracy
+        });
+        updateTrailPolyline();
+        updateTrailStats();
+      }
+    }
+
+    // GPS Error Handler
+    function handleError(error) {
+      let message = 'Onbekende fout bij GPS tracking';
+      
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          message = 'GPS toegang geweigerd. Geef de applicatie toestemming om uw locatie te gebruiken.';
+          break;
+        case error.POSITION_UNAVAILABLE:
+          message = 'Locatie informatie niet beschikbaar. Controleer of GPS is ingeschakeld.';
+          break;
+        case error.TIMEOUT:
+          message = 'GPS request timeout. Probeer het opnieuw.';
+          break;
+      }
+
+      document.getElementById('gpsError').style.display = 'block';
+      document.getElementById('errorMessage').textContent = message;
+    }
+
+    // Start GPS Tracking
+    document.getElementById('startTracking').addEventListener('click', function() {
+      if (!navigator.geolocation) {
+        alert('Geolocation wordt niet ondersteund door deze browser');
+        return;
+      }
+
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      };
+
+      watchId = navigator.geolocation.watchPosition(handleSuccess, handleError, options);
+      isTracking = true;
+
+      this.disabled = true;
+      document.getElementById('stopTracking').disabled = false;
+    });
+
+    // Get Current Position
+    document.getElementById('getCurrentPosition').addEventListener('click', function() {
+      if (!navigator.geolocation) {
+        alert('Geolocation wordt niet ondersteund door deze browser');
+        return;
+      }
+
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      };
+
+      navigator.geolocation.getCurrentPosition(handleSuccess, handleError, options);
+    });
+
+    // Stop GPS Tracking
+    document.getElementById('stopTracking').addEventListener('click', function() {
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+      }
+
+      isTracking = false;
+      document.getElementById('trackingStatus').textContent = 'Stopped';
+      document.getElementById('startTracking').disabled = false;
+      this.disabled = true;
+    });
+
+    // Start Trail Recording
+    document.getElementById('startTrail').addEventListener('click', function() {
+      trail = [];
+      isRecordingTrail = true;
+      trailStartTime = Date.now();
+
+      // Start tracking if not already
+      if (!isTracking) {
+        document.getElementById('startTracking').click();
+      }
+
+      this.disabled = true;
+      document.getElementById('stopTrail').disabled = false;
+      document.getElementById('exportGeoJSON').disabled = true;
+      document.getElementById('exportGPX').disabled = true;
+
+      // Start stats update interval
+      window.trailInterval = setInterval(updateTrailStats, 1000);
+    });
+
+    // Stop Trail Recording
+    document.getElementById('stopTrail').addEventListener('click', function() {
+      isRecordingTrail = false;
+      
+      if (window.trailInterval) {
+        clearInterval(window.trailInterval);
+      }
+
+      this.disabled = true;
+      document.getElementById('startTrail').disabled = false;
+      document.getElementById('exportGeoJSON').disabled = trail.length === 0;
+      document.getElementById('exportGPX').disabled = trail.length === 0;
+    });
+
+    // Clear Trail
+    document.getElementById('clearTrail').addEventListener('click', function() {
+      trail = [];
+      trailPolyline.setLatLngs([]);
+      updateTrailStats();
+      document.getElementById('exportGeoJSON').disabled = true;
+      document.getElementById('exportGPX').disabled = true;
+      document.getElementById('duration').textContent = '00:00:00';
+    });
+
+    // Export GeoJSON
+    document.getElementById('exportGeoJSON').addEventListener('click', function() {
+      if (trail.length === 0) return;
+
+      const geojson = {
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: trail.map(point => [point.longitude, point.latitude, 0])
+        },
+        properties: {
+          timestamps: trail.map(point => point.timestamp),
+          accuracies: trail.map(point => point.accuracy),
+          recordedAt: new Date().toISOString(),
+          pointCount: trail.length
+        }
+      };
+
+      const blob = new Blob([JSON.stringify(geojson, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `trail-${new Date().toISOString()}.geojson`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Export GPX
+    document.getElementById('exportGPX').addEventListener('click', function() {
+      if (trail.length === 0) return;
+
+      const trackPoints = trail.map(point => {
+        const date = new Date(point.timestamp).toISOString();
+        return `    <trkpt lat="${point.latitude}" lon="${point.longitude}">
+      <time>${date}</time>
+      <hdop>${point.accuracy}</hdop>
+    </trkpt>`;
+      }).join('\n');
+
+      const gpx = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="OrchardMap"
+  xmlns="http://www.topografix.com/GPX/1/1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <trk>
+    <name>OrchardMap Trail</name>
+    <trkseg>
+${trackPoints}
+    </trkseg>
+  </trk>
+</gpx>`;
+
+      const blob = new Blob([gpx], { type: 'application/gpx+xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `trail-${new Date().toISOString()}.gpx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Initialize on load
+    window.addEventListener('load', function() {
+      initMap();
+    });
+  </script>
+</body>
+</html>

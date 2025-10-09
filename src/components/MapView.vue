@@ -278,7 +278,7 @@ const props = defineProps({
 })
 
 // Emits
-defineEmits([
+const emit = defineEmits([
   'map-ready',
   'marker-click',
   'boundary-click',

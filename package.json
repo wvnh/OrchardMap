@@ -4,7 +4,8 @@
   "description": "Geografisch beheersysteem voor boomgaarden en boomsoorten, gebouwd met Vue.js en Supabase.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "demo": "npx http-server . -p 8080 -o demo-gps-map.html"
   },
   "repository": {
     "type": "git",

@@ -194,7 +194,7 @@ const props = defineProps({
 })
 
 // Emits
-defineEmits(['tree-selected', 'orchard-selected'])
+const emit = defineEmits(['tree-selected', 'orchard-selected'])
 
 // Composables
 const {
