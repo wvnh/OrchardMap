@@ -63,6 +63,38 @@ export function useAuth() {
   }
 
   /**
+   * Register functie
+   * Registreert een nieuwe gebruiker met email en wachtwoord
+   * 
+   * @param {string} email - Email van de gebruiker
+   * @param {string} password - Wachtwoord van de gebruiker
+   * @param {Object} metadata - Extra gebruikersgegevens (first_name, last_name, etc.)
+   * @returns {Promise<Object>} - Supabase auth response
+   * @throws {Error} - Als registratie mislukt
+   */
+  const register = async (email, password, metadata = {}) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: metadata
+        }
+      })
+
+      if (error) {
+        throw error
+      }
+
+      // User wordt automatisch bijgewerkt via onAuthStateChange
+      return data
+    } catch (error) {
+      console.error('Register error:', error.message)
+      throw error
+    }
+  }
+
+  /**
    * Logout functie
    * Logt de huidige gebruiker uit
    * 
@@ -116,11 +148,20 @@ export function useAuth() {
   // Initialiseer bij eerste gebruik
   initializeAuth()
 
+  /**
+   * Check of gebruiker is ingelogd
+   * 
+   * @returns {boolean} - True als gebruiker is ingelogd
+   */
+  const isAuthenticated = computed(() => !!user.value)
+
   // Return public API
   return {
     user,
     userRole,
+    isAuthenticated,
     login,
+    register,
     logout
   }
 }
