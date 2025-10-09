@@ -1,0 +1,430 @@
+# 🚀 Production Deployment Checklist
+
+Use this checklist when deploying OrchardMap to production for the first time or when making major infrastructure changes.
+
+## Prerequisites
+
+- [ ] GitHub repository access with permissions
+- [ ] Supabase account with billing set up
+- [ ] Hosting platform account (Netlify or Vercel)
+- [ ] Domain name (optional but recommended)
+
+---
+
+## 1. Supabase Setup
+
+### Create Production Project
+
+- [ ] Go to [Supabase Dashboard](https://supabase.com/dashboard)
+- [ ] Click "New Project"
+- [ ] Select organization
+- [ ] Choose region (recommend: closest to your users)
+- [ ] Set strong database password (store in password manager)
+- [ ] Wait for project initialization (~2 minutes)
+
+### Configure Project
+
+- [ ] Go to Project Settings → API
+- [ ] Copy Project URL
+- [ ] Copy `anon` public key
+- [ ] Copy `service_role` key (keep secure!)
+- [ ] Go to Project Settings → Database
+- [ ] Copy Connection String
+- [ ] Save all credentials securely
+
+### Set Up Authentication
+
+- [ ] Dashboard → Authentication → Providers
+- [ ] Configure email provider
+- [ ] Set site URL (your production domain)
+- [ ] Configure redirect URLs
+- [ ] Optional: Enable social auth providers
+
+### Configure CORS
+
+- [ ] Dashboard → Settings → API
+- [ ] Add allowed origins
+- [ ] Add your production domain
+- [ ] Save changes
+
+---
+
+## 2. Database Migration
+
+### Verify Migrations Locally
+
+```bash
+# Test migrations locally first
+supabase start
+supabase db reset
+node test-setup.js
+```
+
+- [ ] All migrations run successfully
+- [ ] Test data loads correctly
+- [ ] RLS policies work as expected
+
+### Deploy to Production
+
+```bash
+# Link to production project
+supabase login
+supabase link --project-ref YOUR_PROJECT_REF
+
+# Push migrations
+supabase db push
+
+# Verify migration success
+supabase db remote commit
+```
+
+- [ ] Migrations applied successfully
+- [ ] No errors in Supabase logs
+- [ ] Database tables created correctly
+- [ ] RLS policies active
+
+---
+
+## 3. GitHub Secrets Configuration
+
+Go to: Repository → Settings → Secrets and variables → Actions
+
+### Required Secrets
+
+- [ ] `SUPABASE_ACCESS_TOKEN`
+  - Get from: https://supabase.com/dashboard/account/tokens
+  - Click "Generate new token"
+  - Give it a name (e.g., "OrchardMap Production")
+  - Copy and save as secret
+
+- [ ] `SUPABASE_PROJECT_REF`
+  - Get from your project URL
+  - Format: `https://[PROJECT_REF].supabase.co`
+  - Copy only the PROJECT_REF part
+
+- [ ] `VITE_SUPABASE_URL`
+  - Your full Supabase project URL
+  - Example: `https://xxxxx.supabase.co`
+
+- [ ] `VITE_SUPABASE_ANON_KEY`
+  - Your public anon key from Supabase API settings
+
+- [ ] `VITE_APP_URL`
+  - Your production domain
+  - Example: `https://orchardmap.com`
+
+### Hosting Secrets (choose one)
+
+**For Netlify:**
+- [ ] `NETLIFY_AUTH_TOKEN`
+  - Get from: https://app.netlify.com/user/applications/personal
+  - Click "New access token"
+  - Copy and save as secret
+
+- [ ] `NETLIFY_SITE_ID`
+  - Get from: Site settings → General → Site details
+  - Copy API ID
+
+**For Vercel:**
+- [ ] `VERCEL_TOKEN`
+  - Get from: https://vercel.com/account/tokens
+  - Create new token
+  - Copy and save as secret
+
+- [ ] `VERCEL_ORG_ID`
+  - Get from: https://vercel.com/[your-team]/settings
+  - Copy Organization ID
+
+- [ ] `VERCEL_PROJECT_ID`
+  - Get from project settings
+  - Copy Project ID
+
+---
+
+## 4. Hosting Setup
+
+### Option A: Netlify
+
+**Connect Repository:**
+- [ ] Go to https://app.netlify.com
+- [ ] Click "Add new site" → "Import an existing project"
+- [ ] Connect to GitHub
+- [ ] Select `wvnh/OrchardMap` repository
+- [ ] Choose branch: `main`
+
+**Build Settings:**
+- [ ] Build command: `npm run build`
+- [ ] Publish directory: `dist`
+- [ ] Node version: 20
+
+**Environment Variables:**
+- [ ] Add `VITE_SUPABASE_URL`
+- [ ] Add `VITE_SUPABASE_ANON_KEY`
+- [ ] Add `VITE_APP_URL`
+
+**Deploy:**
+- [ ] Click "Deploy site"
+- [ ] Wait for deployment to complete
+- [ ] Verify site is accessible
+
+### Option B: Vercel
+
+**Import Project:**
+- [ ] Go to https://vercel.com/dashboard
+- [ ] Click "Add New" → "Project"
+- [ ] Import from GitHub: `wvnh/OrchardMap`
+- [ ] Select repository
+
+**Configure:**
+- [ ] Framework: Vite
+- [ ] Build Command: `npm run build`
+- [ ] Output Directory: `dist`
+
+**Environment Variables:**
+- [ ] Add `VITE_SUPABASE_URL`
+- [ ] Add `VITE_SUPABASE_ANON_KEY`
+- [ ] Add `VITE_APP_URL`
+
+**Deploy:**
+- [ ] Click "Deploy"
+- [ ] Wait for deployment
+- [ ] Verify site works
+
+---
+
+## 5. Custom Domain Setup
+
+### DNS Configuration
+
+- [ ] Purchase domain (if needed)
+- [ ] Go to DNS provider dashboard
+- [ ] Add DNS records as instructed by hosting platform
+
+**For Netlify:**
+- [ ] Netlify → Domain settings → Add custom domain
+- [ ] Follow DNS configuration instructions
+- [ ] Wait for DNS propagation (~30 min to 24 hours)
+
+**For Vercel:**
+- [ ] Vercel → Project Settings → Domains
+- [ ] Add your domain
+- [ ] Configure DNS records
+- [ ] Wait for verification
+
+### SSL Certificate
+
+- [ ] SSL certificate auto-generated by hosting platform
+- [ ] Verify HTTPS works
+- [ ] Force HTTPS redirect enabled
+- [ ] Test with https://your-domain.com
+
+---
+
+## 6. CI/CD Pipeline Verification
+
+### Test CI Pipeline
+
+- [ ] Create test branch
+- [ ] Make small change
+- [ ] Push and create PR
+- [ ] Verify CI workflow runs
+- [ ] Check all jobs pass:
+  - [ ] Lint and test
+  - [ ] Database migration check
+  - [ ] Security audit
+
+### Test Deployment Pipeline
+
+- [ ] Merge test PR to main
+- [ ] Verify deployment workflow runs
+- [ ] Check deployment logs for errors
+- [ ] Verify database migrations applied
+- [ ] Verify frontend deployed successfully
+- [ ] Check production site
+
+---
+
+## 7. Post-Deployment Verification
+
+### Functionality Tests
+
+- [ ] Site loads without errors
+- [ ] Can access login page
+- [ ] Can register new user
+- [ ] Can login with test account
+- [ ] Database queries work
+- [ ] API endpoints respond
+- [ ] No console errors
+- [ ] Mobile responsive
+
+### Performance Tests
+
+- [ ] Page load time < 3 seconds
+- [ ] API response time < 500ms
+- [ ] No 404 errors
+- [ ] Images load correctly
+- [ ] Lighthouse score > 80
+
+### Security Tests
+
+- [ ] HTTPS enabled
+- [ ] SSL certificate valid
+- [ ] Security headers present
+- [ ] RLS policies working
+- [ ] No exposed secrets in frontend
+- [ ] CORS configured correctly
+
+---
+
+## 8. Monitoring Setup
+
+### Supabase Monitoring
+
+- [ ] Dashboard → Database → Enable monitoring
+- [ ] Set up email alerts for:
+  - [ ] High error rate
+  - [ ] Database down
+  - [ ] High latency
+  - [ ] Storage threshold
+
+### Error Tracking (Optional)
+
+- [ ] Sign up for Sentry
+- [ ] Configure Sentry in frontend
+- [ ] Add `SENTRY_DSN` to environment
+- [ ] Test error reporting
+- [ ] Set up alert rules
+
+---
+
+## 9. Backup Configuration
+
+### Automatic Backups
+
+- [ ] Verify Supabase plan includes backups
+- [ ] Check backup retention period
+- [ ] Note backup schedule
+- [ ] Document restore procedure
+
+### Manual Backup
+
+```bash
+# Create initial manual backup
+supabase db dump -f backup-production-initial.sql
+```
+
+- [ ] Manual backup created
+- [ ] Backup stored securely
+- [ ] Backup tested (restore to test environment)
+
+---
+
+## 10. Documentation Updates
+
+- [ ] Update README with production URL
+- [ ] Document any custom configuration
+- [ ] Update team documentation
+- [ ] Create operational runbook
+- [ ] Document on-call procedures
+
+---
+
+## 11. Team Communication
+
+### Stakeholder Notification
+
+- [ ] Notify team of production deployment
+- [ ] Share production URL
+- [ ] Share access credentials (secure channel)
+- [ ] Schedule training session (if needed)
+- [ ] Document support contacts
+
+### Monitoring Setup
+
+- [ ] Add team members to monitoring alerts
+- [ ] Set up on-call rotation
+- [ ] Create incident response plan
+- [ ] Test alert notifications
+
+---
+
+## 12. Final Checks
+
+### Pre-Launch
+
+- [ ] All tests passing
+- [ ] No critical bugs
+- [ ] Performance acceptable
+- [ ] Security audit completed
+- [ ] Backup tested
+- [ ] Monitoring active
+- [ ] Team notified
+
+### Launch
+
+- [ ] Set production environment live
+- [ ] Monitor for first hour
+- [ ] Check error logs
+- [ ] Verify user registrations work
+- [ ] Test critical paths
+- [ ] Monitor performance metrics
+
+### Post-Launch
+
+- [ ] Send launch announcement
+- [ ] Monitor for issues (24 hours)
+- [ ] Gather initial feedback
+- [ ] Document any issues
+- [ ] Schedule retrospective
+
+---
+
+## Rollback Plan
+
+If something goes wrong:
+
+### Frontend Rollback
+```bash
+# Netlify: Dashboard → Deployments → Previous → Publish
+# Vercel: Dashboard → Deployments → Previous → Promote
+```
+
+### Database Rollback
+```bash
+# Restore from backup
+supabase db reset --db-url "connection-string"
+psql "connection-string" < backup.sql
+```
+
+- [ ] Rollback procedure documented
+- [ ] Team knows how to execute rollback
+- [ ] Rollback tested in staging
+
+---
+
+## Support Contacts
+
+- **Supabase Support**: https://supabase.com/dashboard/support
+- **Netlify/Vercel Support**: Check platform documentation
+- **GitHub Issues**: https://github.com/wvnh/OrchardMap/issues
+
+---
+
+## Notes
+
+Use this space for deployment-specific notes:
+
+```
+Deployment Date: _______________
+Deployed By: _______________
+Production URL: _______________
+Issues Encountered: _______________
+```
+
+---
+
+**Status**: [ ] Not Started | [ ] In Progress | [ ] Completed | [ ] Verified
+
+**Date Completed**: _______________
+
+**Verified By**: _______________
