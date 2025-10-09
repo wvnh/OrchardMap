@@ -19,9 +19,11 @@ open http://127.0.0.1:54325
 
 ✅ **Database & Security**: Production-ready met RLS  
 ✅ **Documentatie**: Complete user stories en schema  
-🔄 **Frontend**: Ready voor Vue.js 3 + Quasar setup  
+🔄 **Frontend**: Ready voor ontwikkeling via GitHub Issues  
 
-👉 **Zie [`PROJECT-STATUS.md`](./PROJECT-STATUS.md) voor volledige details en volgende stappen**
+👉 **Zie [GitHub Issues](https://github.com/wvnh/OrchardMap/issues) voor development roadmap**  
+👉 **Zie [`GITHUB-WORKFLOW.md`](./GITHUB-WORKFLOW.md) voor branch workflow**  
+👉 **Zie [`PROJECT-STATUS.md`](./PROJECT-STATUS.md) voor volledige details**
 
 ## 🗄️ Database
 

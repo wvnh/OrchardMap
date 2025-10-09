@@ -42,73 +42,35 @@
 
 ## 🚀 **VOLGENDE STAPPEN**
 
-### **FASE 1: Frontend Setup (Prioriteit 1)**
+### 📋 **GitHub Issues Workflow**
+We werken nu met GitHub Issues voor gestructureerde ontwikkeling:
 
-#### 🎨 **Vue.js 3 Project Initialisatie**
+**🎯 Main Epic Issue:** [#17 - OrchardMap Frontend Development](https://github.com/wvnh/OrchardMap/issues/17)
+
+### **🔥 FASE 1: Foundation (Prioriteit Hoog)**
+- **[#10](https://github.com/wvnh/OrchardMap/issues/10)** - 🎨 Frontend Project Setup (Vue.js 3 + Quasar)
+- **[#11](https://github.com/wvnh/OrchardMap/issues/11)** - 🔐 Authentication & Authorization System  
+- **[#12](https://github.com/wvnh/OrchardMap/issues/12)** - 🌳 Orchard Management Interface
+
+### **🚀 FASE 2: Core Features (Prioriteit Medium)**
+- **[#13](https://github.com/wvnh/OrchardMap/issues/13)** - 🗺️ GPS Integration & Mapping System
+- **[#14](https://github.com/wvnh/OrchardMap/issues/14)** - 👥 User Management & Permission System
+
+### **📊 FASE 3: Advanced Features (Prioriteit Laag)**
+- **[#15](https://github.com/wvnh/OrchardMap/issues/15)** - 📊 Analytics Dashboard & Data Visualization
+- **[#16](https://github.com/wvnh/OrchardMap/issues/16)** - 🚀 Production Deployment & DevOps
+
+� **Zie [`GITHUB-WORKFLOW.md`](./GITHUB-WORKFLOW.md) voor complete branch workflow guide**
+
+### **🌿 Branch Workflow**
 ```bash
-# In OrchardMap directory:
-npm create vue@latest frontend
-cd frontend
-npm install @supabase/supabase-js
-npm install quasar @quasar/extras
-npm install @vueuse/core
+# Start met eerste issue
+git checkout -b feature/issue-10-frontend-setup
+
+# Volg de taken in GitHub issue #10
+# Test met: supabase start && node test-setup.js
+# Maak PR naar develop branch
 ```
-
-#### 📱 **Quasar Framework Integratie**
-- Installeer Quasar CLI en setup responsive components
-- Configureer Tailwind CSS voor custom styling
-- Setup PWA capabiliteiten voor mobiel gebruik
-
-#### 🔌 **Supabase Frontend Integratie**
-- Configureer `src/composables/useAuth.js` (al aanwezig)
-- Update `src/config/supabase.js` voor productie URLs
-- Implementeer authentication flows (login/register/logout)
-
-### **FASE 2: Core Features (Prioriteit 1)**
-
-#### 🗺️ **GPS & Mapping**
-- Integreer Leaflet of Google Maps voor kaart weergave
-- Implementeer GPS tracking voor boom locaties
-- Voeg offline kaart caching toe voor veldwerk
-
-#### 🌳 **Orchard Management Interface**
-- Boomgaard overzicht met grid layout
-- Tree detail modals met alle species informatie
-- CRUD operaties voor trees en orchards
-
-#### 👥 **User Management**
-- Rol-gebaseerde navigation en UI
-- Permission management interface voor orchard owners
-- User profiel en instellingen
-
-### **FASE 3: Advanced Features (Prioriteit 2)**
-
-#### 📊 **Data Visualisatie**
-- Dashboard met statistieken per boomgaard
-- Species distributie charts
-- Groei tracking en analytics
-
-#### 🔄 **Real-time Features**
-- Live updates bij data wijzigingen
-- Collaborative editing voor teams
-- Notificaties voor belangrijke events
-
-#### 📱 **Mobile Optimalisatie**
-- Offline-first architectuur voor veldwerk
-- GPS nauwkeurigheid optimalisatie
-- Touch-friendly interfaces
-
-### **FASE 4: Productie Deployment (Prioriteit 2)**
-
-#### ☁️ **Cloud Deployment**
-- Supabase productie project setup
-- Environment variabelen configuratie
-- Database migraties naar productie
-
-#### 🔧 **DevOps & Monitoring**
-- CI/CD pipeline setup
-- Error monitoring en logging
-- Performance monitoring
 
 ---
 
