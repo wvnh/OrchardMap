@@ -115,10 +115,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuth } from '../../composables/useAuth.js'
-import { useOrchards } from '../../composables/useOrchards.js'
-import OrchardCard from '../../components/orchard/OrchardCard.vue'
-import OrchardFormModal from '../../components/orchard/OrchardFormModal.vue'
+import { useAuth } from '@/composables/useAuth.js'
+import { useOrchards } from '@/composables/useOrchards.js'
+import OrchardCard from '@/components/orchard/OrchardCard.vue'
+import OrchardFormModal from '@/components/orchard/OrchardFormModal.vue'
 
 const router = useRouter()
 const { user, userRole } = useAuth()

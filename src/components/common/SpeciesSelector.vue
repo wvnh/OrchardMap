@@ -76,7 +76,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { useTreeSpecies } from '../../composables/useTreeSpecies.js'
+import { useTreeSpecies } from '@/composables/useTreeSpecies.js'
 
 const props = defineProps({
   modelValue: {

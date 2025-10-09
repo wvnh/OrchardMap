@@ -7,7 +7,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useAuth } from '../../composables/useAuth.js'
+import { useAuth } from '@/composables/useAuth.js'
 
 const props = defineProps({
   orchard: {

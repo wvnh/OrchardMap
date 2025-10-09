@@ -171,13 +171,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useOrchards } from '../../composables/useOrchards.js'
-import { useTrees } from '../../composables/useTrees.js'
-import PermissionBadge from '../../components/common/PermissionBadge.vue'
-import OrchardGrid from '../../components/orchard/OrchardGrid.vue'
-import TreeDetailModal from '../../components/tree/TreeDetailModal.vue'
-import OrchardFormModal from '../../components/orchard/OrchardFormModal.vue'
-import TreeFormModal from '../../components/tree/TreeFormModal.vue'
+import { useOrchards } from '@/composables/useOrchards.js'
+import { useTrees } from '@/composables/useTrees.js'
+import PermissionBadge from '@/components/common/PermissionBadge.vue'
+import OrchardGrid from '@/components/orchard/OrchardGrid.vue'
+import TreeDetailModal from '@/components/tree/TreeDetailModal.vue'
+import OrchardFormModal from '@/components/orchard/OrchardFormModal.vue'
+import TreeFormModal from '@/components/tree/TreeFormModal.vue'
 
 const route = useRoute()
 const router = useRouter()

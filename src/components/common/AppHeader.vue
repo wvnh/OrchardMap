@@ -31,7 +31,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuth } from '../../composables/useAuth.js'
+import { useAuth } from '@/composables/useAuth.js'
 import PermissionBadge from './PermissionBadge.vue'
 
 const router = useRouter()
